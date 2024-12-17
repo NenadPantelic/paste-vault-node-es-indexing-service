@@ -1,0 +1,62 @@
+server:
+  port: 8901
+
+spring:
+  kafka:
+    properties:
+      schema.registry.url: http://localhost:8081
+
+kafka:
+  config:
+    # bootstrap-servers: kafka-broker-1:9092, kafka-broker-2:9092, kafka-broker-3:9092
+    bootstrap-servers: localhost:19092, localhost:29092, localhost:39092
+    schema-registry-url-key: schema.registry.url
+    schema-registry-url: http://localhost:8081
+    schema.registry.url: http://localhost:8081
+
+    # schema-registry-url: http://schema-registry:8081
+    topic-names-to-create:
+      - node-topic
+      - indexing-report-topic
+    num-of-partitions: 3
+    replication-factor: 3
+
+  producer:
+    key-serializer-class: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer-class: io.confluent.kafka.serializers.KafkaAvroSerializer
+    requests-timeout-ms: 60000
+    # if no ack comes after 60s, throw a timeout error
+    retry-count: 5
+    topic: indexing-report-topic
+
+  consumer:
+    key-deserializer-class: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer-class: io.confluent.kafka.serializers.KafkaAvroDeserializer
+    # sets a unique ID for a consumer to allow using offsets
+    consumer-group-id: node-topic-consumer
+    topic: node-topic
+    concurrency-level: 3
+    poll-timeout-in-millis: 150
+
+
+retry:
+  initial-interval-ms: 1000
+  max-interval-ms: 10000
+  multiplier: 2.0
+  max-attempts: 3
+  sleep-time-ms: 2000
+#
+#spring:
+#  data:
+#    elasticsearch:
+#      cluster-name: elasticsearch
+#      cluster-nodes: localhost:9200
+#      repositories:
+#        enabled: true
+
+elasticsearch:
+  index-name: node-index
+  connection-url: localhost:9200
+  connect-timeout-ms: 5000
+  socket-timeout-ms: 30000
+  use-repository: true
